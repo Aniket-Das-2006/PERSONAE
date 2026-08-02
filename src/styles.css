@@ -1,0 +1,205 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * PERSONAE — The Living Archive
+ * Two surfaces: ink navy + warm parchment. Single desaturated gold accent.
+ * Serif display (Fraunces) / geometric sans (Inter) / mono (JetBrains Mono).
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 6px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ink: var(--ink);
+  --color-ink-raised: var(--ink-raised);
+  --color-parchment: var(--parchment);
+  --color-gold: var(--gold);
+  --color-gold-dim: var(--gold-dim);
+  --color-signal: var(--signal);
+  --color-hairline: var(--hairline);
+  --font-display: "Fraunces", "Source Serif 4", Georgia, serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --ease-ink: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root {
+  --radius: 0.25rem;
+
+  --ink: oklch(0.19 0.036 265);
+  --ink-raised: oklch(0.235 0.036 265);
+  --parchment: oklch(0.955 0.014 85);
+  --gold: oklch(0.76 0.106 84);
+  --gold-dim: oklch(0.62 0.088 84);
+  --signal: oklch(0.62 0.135 22);
+  --hairline: oklch(0.76 0.106 84 / 22%);
+
+  --background: var(--ink);
+  --foreground: oklch(0.93 0.012 85);
+  --card: var(--ink-raised);
+  --card-foreground: oklch(0.93 0.012 85);
+  --popover: oklch(0.215 0.036 265);
+  --popover-foreground: oklch(0.93 0.012 85);
+  --primary: var(--gold);
+  --primary-foreground: oklch(0.17 0.036 265);
+  --secondary: oklch(0.27 0.032 265);
+  --secondary-foreground: oklch(0.93 0.012 85);
+  --muted: oklch(0.26 0.03 265);
+  --muted-foreground: oklch(0.7 0.018 85);
+  --accent: oklch(0.29 0.034 265);
+  --accent-foreground: var(--gold);
+  --destructive: var(--signal);
+  --destructive-foreground: oklch(0.96 0.01 85);
+  --border: oklch(0.76 0.106 84 / 18%);
+  --input: oklch(0.76 0.106 84 / 24%);
+  --ring: var(--gold-dim);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 400;
+  }
+
+  ::selection {
+    background: oklch(0.76 0.106 84 / 30%);
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: oklch(0.76 0.106 84 / 20%);
+    border-radius: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+}
+
+/* Scanned-archive grain over dark surfaces */
+@utility grain {
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/></filter><rect width='140' height='140' filter='url(%23n)'/></svg>");
+  }
+}
+
+@utility hairline {
+  border: 1px solid var(--hairline);
+}
+
+@utility smallcaps {
+  font-variant-caps: all-small-caps;
+  letter-spacing: 0.1em;
+}
+
+@utility ink-transition {
+  transition-timing-function: var(--ease-ink);
+  transition-duration: 450ms;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+@keyframes ink-bleed {
+  0% {
+    opacity: 0;
+    transform: scale(1.25);
+    filter: blur(5px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes slow-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes cursor-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@utility animate-rise {
+  animation: rise-in 600ms var(--ease-ink) both;
+}
+
+@utility animate-bleed {
+  animation: ink-bleed 520ms var(--ease-ink) both;
+}
+
+@utility animate-slow-pulse {
+  animation: slow-pulse 3.2s ease-in-out infinite;
+}
