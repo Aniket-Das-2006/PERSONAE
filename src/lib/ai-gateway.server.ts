@@ -93,9 +93,8 @@ async function geminiChat(
 
     const text = await res.text();
     last = `Gemini error ${res.status}: ${text.slice(0, 300)}`;
-    // 404 / 400 mean "not this model" — try the next one. Anything else
-    // (401 bad key, 429 quota) will not improve by switching models.
-    if (res.status !== 404 && res.status !== 400) break;
+    // Try the next model if the current one is unavailable, not found, or rate-limited.
+    if (res.status !== 404 && res.status !== 400 && res.status !== 503 && res.status !== 429) break;
     forgetModelCache(key);
   }
 
@@ -124,7 +123,12 @@ export async function gatewayChat(
         const clean = (
           raw ? msg.split(raw).join("«your key»") : msg
         ).replace(/\b(?:AIza|AQ)[0-9A-Za-z._\-]{10,}/g, "«your key»");
-        throw new Error(`Your Gemini key was rejected: ${clean.slice(0, 220)}`);
+        
+        if (msg.includes("401") || msg.includes("403") || msg.toLowerCase().includes("key")) {
+          throw new Error(`Your Gemini key was rejected: ${clean.slice(0, 220)}`);
+        } else {
+          throw new Error(clean.slice(0, 220));
+        }
       }
       if (!key) throw e;
     }
