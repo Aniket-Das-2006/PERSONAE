@@ -85,28 +85,28 @@ Open `http://localhost:3000` (or the port specified in console) to consult the a
 
 ## ✦ Terminal User Interface (CLI TUI)
 
-PERSONAE includes a fully-featured, premium Terminal User Interface (TUI) allowing you to interact with the Living Archive directly from your command line.
+PERSONAE features an immersive, keyboard-driven Terminal User Interface (TUI) designed to run directly inside your command line. The interface leverages standard ASCII borders to ensure perfect layout alignment across all terminals (Cmd, PowerShell, Windows Terminal) while maintaining a modern, minimalist command aesthetic.
 
 ### Launching the CLI
-To open and run the TUI on your terminal, execute:
+Initialize the terminal archive from the root of the project:
 ```bash
 npm run cli
 # or
 bun run cli
 ```
 
-### Features & Capabilities
-1. **Search Codex:** Browse and search all 208 minds alphabetically using pagination. Each thinker has a unique index code (1–208) mapped to them.
-2. **Converse with a Thinker:** Initiate an interactive chat with any thinker. You can select them directly using their numeric index code (e.g. `81` for Netaji) or search by name (e.g. `socrates`).
-3. **Summon the Council:** Choose 3 thinkers to deliberate and discuss a specific prompt/query together.
-4. **Orchestrate a Debate:** Pit 2 thinkers against each other in a turn-based intellectual battle on a topic of your choice.
+### Features & Operations
+*   **Alphabetical Registry & Code Index:** The entire codex of 208 minds is organized alphabetically and indexed with unique numeric codes (`1` to `208`). You can view details, signatures, and eras page-by-page.
+*   **Direct Invocations:** Bypass search prompts by immediately typing a thinker's code (e.g. `175` to chat with Netaji Subhas Chandra Bose) or querying partial names (e.g. `netaji` or `socrates`) to trigger auto-recommendation lists.
+*   **The Council Chamber:** Convene three distinct historical minds to analyze, debate, and deliberate over a single prompt, watching their reasoning styles clash or converge.
+*   **The Debate Arena:** Select two thinkers and set them against each other in a structured, turn-based intellectual battle on any thesis you define.
 
-### In-Chat Context Commands
-While chatting, use these custom slash-commands directly in the prompt for advanced context control:
-- `/context` — View the active conversation details (total turns, instruction status, auto-compression toggles).
-- `/new` — Instantly wipe history and start a fresh session with the thinker.
-- `/compress` — Manually trigger a context summarization model to collapse old turns and free up context space.
-- `/api` — Change your Gemini API key mid-conversation without exiting the chat session.
+### Context Control Commands
+When interacting with any mind, input these slash commands in the chat prompt for advanced, real-time context management:
+*   `/context` — Inspect active conversation statistics, turn counts, and auto-compression toggles.
+*   `/new` — Reset the active context and clear conversation history while retaining the thinker's core identity prompt.
+*   `/compress` — Manually trigger a summarization prompt to collapse preceding dialogue turns and maximize context window efficiency.
+*   `/api` — Swap or update your Gemini API Key mid-conversation without exiting the active session.
 
 ---
 
