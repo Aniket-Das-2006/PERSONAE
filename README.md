@@ -123,6 +123,8 @@ When interacting with any mind, input these slash commands in the chat prompt fo
 *   `src/integrations/` — Supabase client setup and related query providers.
 *   `src/styles.css` — Custom global typography, glassmorphism filters, and CSS grain effects.
 
+---
+
 ## ✦ CLI UI Design
 
 ## LANDING
