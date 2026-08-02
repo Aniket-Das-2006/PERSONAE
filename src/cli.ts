@@ -79,23 +79,27 @@ async function summonDebateAnimation(name1: string, name2: string) {
   await new Promise((r) => setTimeout(r, 400));
 }
 
-// Draw a beautiful boxed title with dynamic width (Standard ASCII only)
+// Draw a beautiful boxed title with dynamic width to prevent overflows/crashes
 function drawBox(title: string, subtitle?: string) {
-  const width = 73;
+  const minWidth = 73;
+  const titleLen = title.length;
+  const subLen = subtitle ? subtitle.length : 0;
+  const width = Math.max(minWidth, titleLen + 8, subLen + 8); // Add margin padding dynamically
+
   console.log(C.gold + "┌" + "─".repeat(width - 2) + "┐");
-  const padL = Math.floor((width - 2 - title.length) / 2);
-  const padR = width - 2 - title.length - padL;
-  console.log("│" + " ".repeat(padL) + C.bold + title + C.reset + C.gold + " ".repeat(padR) + "│");
+  const padL = Math.floor((width - 2 - titleLen) / 2);
+  const padR = width - 2 - titleLen - padL;
+  console.log(C.gold + "│" + C.reset + " ".repeat(padL) + C.bold + title + C.reset + C.gold + " ".repeat(padR) + "│");
   
   if (subtitle) {
-    const sPadL = Math.floor((width - 2 - subtitle.length) / 2);
-    const sPadR = width - 2 - subtitle.length - sPadL;
-    console.log("│" + " ".repeat(sPadL) + C.dim + subtitle + C.reset + C.gold + " ".repeat(sPadR) + "│");
+    const sPadL = Math.floor((width - 2 - subLen) / 2);
+    const sPadR = width - 2 - subLen - sPadL;
+    console.log(C.gold + "│" + C.reset + " ".repeat(sPadL) + C.dim + subtitle + C.reset + C.gold + " ".repeat(sPadR) + "│");
   }
-  console.log("└" + "─".repeat(width - 2) + "┘" + C.reset);
+  console.log(C.gold + "└" + "─".repeat(width - 2) + "┘" + C.reset);
 }
 
-// Dynamically draws a menu row to ensure right-border alignment is 100% correct (No emojis)
+// Dynamically draws a menu row to ensure right-border alignment is 100% correct
 function drawMenuRow(text: string) {
   const innerWidth = 73;
   const padding = innerWidth - 6 - text.length; // 3 spaces left margin, variable right margin
@@ -220,6 +224,27 @@ async function queryPersonaInteractive(title: string): Promise<Persona | null> {
   }
 }
 
+// Chat Header Drawer dynamically sizing borders to prevent wrap errors
+function drawChatHeader(p: Persona) {
+  const minWidth = 73;
+  const nameLen = p.name.length;
+  const roleLen = p.role.length;
+  const sigLen = p.signature.length;
+  const width = Math.max(minWidth, nameLen + 8, roleLen + 8, Math.min(sigLen + 8, 85));
+
+  console.log(C.gold + "┌" + "─".repeat(width - 2) + "┐");
+  const nPad = width - 4 - nameLen;
+  console.log(C.gold + "│ " + C.reset + C.bold + p.name.toUpperCase() + " ".repeat(nPad) + C.gold + " │" + C.reset);
+  const rPad = width - 4 - roleLen;
+  console.log(C.gold + "│ " + C.reset + C.dim + p.role + " ".repeat(rPad) + C.gold + " │" + C.reset);
+  
+  const maxSig = width - 4;
+  const sigText = p.signature.length > maxSig ? p.signature.slice(0, maxSig - 3) + "..." : p.signature;
+  const sPad = width - 4 - sigText.length;
+  console.log(C.gold + "│ " + C.reset + C.italic + sigText + " ".repeat(sPad) + C.gold + " │" + C.reset);
+  console.log(C.gold + "└" + "─".repeat(width - 2) + "┘" + C.reset);
+}
+
 // Chat Mode
 async function runChat() {
   const p = await queryPersonaInteractive("CONVERSE WITH A THINKER");
@@ -234,11 +259,7 @@ async function runChat() {
   const history: GwMessage[] = [{ role: "system", content: systemInstruction }];
 
   console.clear();
-  console.log(C.gold + "┌" + "─".repeat(69) + "┐");
-  console.log(`│ ${C.bold}${p.name.toUpperCase().padEnd(67)}${C.reset}${C.gold} │`);
-  console.log(`│ ${C.dim}${p.role.padEnd(67)}${C.reset}${C.gold} │`);
-  console.log(`│ ${C.italic}${p.signature.slice(0, 65).padEnd(67)}${C.reset}${C.gold} │`);
-  console.log("└" + "─".repeat(69) + "┘" + C.reset);
+  drawChatHeader(p);
   console.log(C.gray + "Type /back to exit conversation.\n" + C.reset);
 
   while (true) {
@@ -453,7 +474,7 @@ async function main() {
     drawLogoLine("|  _ \\| ____|  _ \\/ ___| / _ \\| \\ | |  / \\   | ____|");
     drawLogoLine("| |_) |  _| | |_) \\___ \\| | | |  \\| | / _ \\  |  _|  ");
     drawLogoLine("|  __/| |___|  _ < ___) | |_| | |\\  |/ ___ \\ | |___ ");
-    drawLogoLine("|_|   |_____|_| \\_\\____/ \\___/|_| \\_/_/   \\_\\|_____|");
+    drawLogoLine("|_|   |_____|_| \_\\____/ \\___/|_| \\_/_/   \\_\\|_____|");
     console.log(C.gold + `│                                                                        │
 │               THE LIVING ARCHIVE OF 208 RECONSTRUCTED MINDS            │
 │       Licensed under the MIT Open Source License · Edition 2026.1      │
