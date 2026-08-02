@@ -79,8 +79,11 @@ bun run dev
 # or
 npm run dev
 ```
+
 Open `http://localhost:3000` (or the port specified in console) to consult the archive.
 Or download PERSONAE.zip and Use it locally.
+
+
 ---
 
 ## ✦ Terminal User Interface (CLI TUI)
