@@ -273,7 +273,7 @@ async function runChat() {
   const p = await queryPersonaInteractive("CONVERSE WITH A THINKER");
   if (!p) return;
 
-  const key = await ensureApiKey();
+  let key = await ensureApiKey();
   if (!key) return;
 
   await summonAnimation(p.name);
@@ -284,7 +284,7 @@ async function runChat() {
   console.clear();
   drawChatHeader(p);
   console.log(C.gray + "Type your message to begin conversation." + C.reset);
-  console.log(C.gray + "Commands: /back (exit), /context (size info), /compress (reduce history), /new (clear history)\n" + C.reset);
+  console.log(C.gray + "Commands: /back (exit), /context (info), /compress (reduce), /new (clear), /api (change key)\n" + C.reset);
 
   while (true) {
     const input = await promptQuestion(C.green + C.bold + "You > " + C.reset);
@@ -313,6 +313,27 @@ async function runChat() {
       process.stdout.write(C.dim + "Compressing historical context..." + C.reset + "\r");
       history = await compressHistory(history, key);
       console.log();
+      continue;
+    }
+
+    if (query === "/api") {
+      console.log(C.cyan + "\n--- Change API Key ---" + C.reset);
+      const newKey = await promptQuestion(C.bold + "Enter new GEMINI_API_KEY: " + C.reset);
+      if (newKey.trim()) {
+        process.env.GEMINI_API_KEY = newKey.trim();
+        key = newKey.trim();
+        try {
+          const envPath = path.resolve(process.cwd(), ".env");
+          if (fs.existsSync(envPath)) {
+            let content = fs.readFileSync(envPath, "utf-8");
+            content = content.replace(/VITE_GEMINI_API_KEY\s*=\s*.+/, `VITE_GEMINI_API_KEY=${key}`);
+            fs.writeFileSync(envPath, content);
+          }
+        } catch (_) {}
+        console.log(C.green + "[API key updated. Continuing session.]\n" + C.reset);
+      } else {
+        console.log(C.red + "[No key entered. Keeping current key.]\n" + C.reset);
+      }
       continue;
     }
 
