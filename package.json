@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
+    "cli": "bun run src/cli.ts || npx tsx src/cli.ts",
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
