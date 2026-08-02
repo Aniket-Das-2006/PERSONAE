@@ -125,8 +125,10 @@ When interacting with any mind, input these slash commands in the chat prompt fo
 
 ## ✦ CLI UI Design
 
+## LANDING
 <img width="1920" height="578" alt="{B4640D8E-ED26-46A6-BF4B-7C235CCBDD9C}" src="https://github.com/user-attachments/assets/f20861b8-6ea9-4f9b-9f40-8660c8992ec4" />
 
+## INDEX
 <img width="1920" height="586" alt="{DEB670A8-3297-4407-8437-E0D430554DC4}" src="https://github.com/user-attachments/assets/18234384-c5f4-4956-b55c-62e6392df8c7" />
 
 <img width="1920" height="1080" alt="{B70F037D-4B72-4AB7-BB84-92890363E473}" src="https://github.com/user-attachments/assets/2715ab32-cc68-4000-b2a7-c1e97e27a2ab" />
