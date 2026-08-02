@@ -94,6 +94,11 @@ npm run cli
 # or
 bun run cli
 ```
+```bash
+E:
+cd E:\PERSONAE
+npm run cli
+```
 
 ### Features & Operations
 *   **Alphabetical Registry & Code Index:** The entire codex of 208 minds is organized alphabetically and indexed with unique numeric codes (`1` to `208`). You can view details, signatures, and eras page-by-page.
