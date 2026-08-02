@@ -32,6 +32,9 @@ const promptQuestion = (query: string): Promise<string> => {
   return new Promise((resolve) => rl.question(query, resolve));
 };
 
+// Sort personas alphabetically and assign a code (1 to 208)
+const sortedPersonas = [...personas].sort((a, b) => a.name.localeCompare(b.name));
+
 // Simple Typewriter Effect
 async function typePrint(text: string, ms = 4) {
   for (let i = 0; i < text.length; i++) {
@@ -43,40 +46,40 @@ async function typePrint(text: string, ms = 4) {
 
 // Summoning / Reconstruction Animations
 async function summonAnimation(name: string) {
-  const frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+  const frames = ["-", "\\", "|", "/"];
   console.log();
   for (let i = 0; i < 20; i++) {
     const frame = frames[i % frames.length];
     process.stdout.write(`\r${C.gold}${frame} Reconstructing mind: ${C.bold}${name}${C.reset} ${C.dim}[Quantum state ${i * 5}%]${C.reset}`);
-    await new Promise((r) => setTimeout(r, 70));
+    await new Promise((r) => setTimeout(r, 60));
   }
-  process.stdout.write(`\r${C.green}✓ Mind successfully reconstructed: ${C.bold}${name}${C.reset}                       \n\n`);
-  await new Promise((r) => setTimeout(r, 500));
+  process.stdout.write(`\r${C.green}[Reconstructed] ${C.bold}${name}${C.reset}                       \n\n`);
+  await new Promise((r) => setTimeout(r, 400));
 }
 
 async function summonCouncilAnimation() {
   console.log();
   for (let i = 0; i < 25; i++) {
     const pct = i * 4;
-    process.stdout.write(`\r${C.gold}⚡ Aligning temperament grid for Council... ${pct}%${C.reset}`);
-    await new Promise((r) => setTimeout(r, 50));
+    process.stdout.write(`\r${C.gold}* Aligning temperament grid for Council... ${pct}%${C.reset}`);
+    await new Promise((r) => setTimeout(r, 40));
   }
-  process.stdout.write(`\r${C.green}✓ Council grid aligned. Reconstructed minds online.                  \n\n`);
-  await new Promise((r) => setTimeout(r, 500));
+  process.stdout.write(`\r${C.green}[Council grid aligned. Minds online.]                  \n\n`);
+  await new Promise((r) => setTimeout(r, 400));
 }
 
 async function summonDebateAnimation(name1: string, name2: string) {
   console.log();
   for (let i = 0; i < 25; i++) {
     const pct = i * 4;
-    process.stdout.write(`\r${C.red}⚔ Establishing debate protocols: ${name1} vs ${name2}... ${pct}%${C.reset}`);
-    await new Promise((r) => setTimeout(r, 50));
+    process.stdout.write(`\r${C.red}* Establishing debate protocols: ${name1} vs ${name2}... ${pct}%${C.reset}`);
+    await new Promise((r) => setTimeout(r, 40));
   }
-  process.stdout.write(`\r${C.green}✓ Protocols established. Debate arena active.                          \n\n`);
-  await new Promise((r) => setTimeout(r, 500));
+  process.stdout.write(`\r${C.green}[Debate protocols active. Arena ready.]                          \n\n`);
+  await new Promise((r) => setTimeout(r, 400));
 }
 
-// Draw a beautiful boxed title with dynamic width
+// Draw a beautiful boxed title with dynamic width (Standard ASCII only)
 function drawBox(title: string, subtitle?: string) {
   const width = 73;
   console.log(C.gold + "┌" + "─".repeat(width - 2) + "┐");
@@ -92,7 +95,7 @@ function drawBox(title: string, subtitle?: string) {
   console.log("└" + "─".repeat(width - 2) + "┘" + C.reset);
 }
 
-// Dynamically draws a menu row to ensure right-border alignment is 100% correct
+// Dynamically draws a menu row to ensure right-border alignment is 100% correct (No emojis)
 function drawMenuRow(text: string) {
   const innerWidth = 73;
   const padding = innerWidth - 6 - text.length; // 3 spaces left margin, variable right margin
@@ -101,8 +104,18 @@ function drawMenuRow(text: string) {
   );
 }
 
+// Dynamically centers ASCII logo lines
+function drawLogoLine(line: string) {
+  const innerWidth = 73;
+  const padL = Math.floor((innerWidth - 2 - line.length) / 2);
+  const padR = innerWidth - 2 - line.length - padL;
+  console.log(
+    C.gold + "│" + C.reset + " ".repeat(padL) + C.bold + line + C.reset + C.gold + " ".repeat(padR) + "│" + C.reset
+  );
+}
+
 // Setup API Key
-async function ensureApiKey(): Promise<string> {
+async function ensureApiKey(forcePrompt = false): Promise<string> {
   let key = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
   if (!key) {
     // Attempt to read from .env file directly
@@ -118,7 +131,7 @@ async function ensureApiKey(): Promise<string> {
     } catch (_) {}
   }
 
-  if (!key) {
+  if (!key || forcePrompt) {
     console.clear();
     drawBox("API KEY CONFIGURATION", "A Gemini API Key is required to run the archive.");
     console.log(C.gray + "\nYou can get a free key from Google AI Studio.\n" + C.reset);
@@ -126,7 +139,7 @@ async function ensureApiKey(): Promise<string> {
     key = input.trim();
     if (key) {
       process.env.GEMINI_API_KEY = key;
-      // Save to local session or env
+      // Save to local .env
       try {
         const envPath = path.resolve(process.cwd(), ".env");
         const newEntry = `\nVITE_GEMINI_API_KEY=${key}\n`;
@@ -138,52 +151,78 @@ async function ensureApiKey(): Promise<string> {
         console.log(C.green + "✓ Key configured and saved to .env file." + C.reset);
         await new Promise((r) => setTimeout(r, 1000));
       } catch (_) {}
-    } else {
-      console.log(C.red + "⚠ Key was not entered. Returning to menu." + C.reset);
+    } else if (!forcePrompt) {
+      console.log(C.red + "⚠ Key was not entered. Running in read-only mode." + C.reset);
       await new Promise((r) => setTimeout(r, 1500));
     }
   }
   return key || "";
 }
 
-// Search and select persona helper
-async function selectPersona(title: string): Promise<Persona | null> {
+// Interactive Codex Browser with recommendations and code mapping
+async function queryPersonaInteractive(title: string): Promise<Persona | null> {
   while (true) {
     console.clear();
-    drawBox(title, "Search from 208 reconstructed minds");
-    const query = await promptQuestion(C.bold + "🔍 Search (or press Enter to list all, /back to return): " + C.reset);
-    if (query.trim() === "/back") return null;
+    drawBox(title, "Enter a numeric code [1-208] or search by name");
+    
+    const input = await promptQuestion(
+      C.bold + "Enter Thinker Code [1-208] or Name (or /back to return): " + C.reset
+    );
+    const query = input.trim();
+    if (query === "/back") return null;
+    if (!query) continue;
 
-    const matches = searchPersonas(query, 15);
+    // Check if it's a numeric code selection
+    const codeNum = parseInt(query, 10);
+    if (!isNaN(codeNum) && codeNum > 0 && codeNum <= sortedPersonas.length) {
+      return sortedPersonas[codeNum - 1];
+    }
+
+    // Recommendation/fuzzy matching engine
+    const searchTerms = query.toLowerCase();
+    const matches = sortedPersonas.filter((p) => {
+      return (
+        p.name.toLowerCase().includes(searchTerms) ||
+        p.role.toLowerCase().includes(searchTerms) ||
+        p.slug.toLowerCase().includes(searchTerms) ||
+        p.aliases.some((a) => a.toLowerCase().includes(searchTerms)) ||
+        p.tags.some((t) => t.toLowerCase().includes(searchTerms))
+      );
+    });
+
     if (matches.length === 0) {
-      console.log(C.red + "\nNo thinkers found. Press Enter to try again." + C.reset);
-      await promptQuestion("");
+      console.log(C.red + `\nNo thinkers matched "${query}". Please check the spelling.` + C.reset);
+      await promptQuestion("Press Enter to try again.");
       continue;
     }
 
-    console.log(C.gold + "\n┌─── INDEX ────────────────────────────────────────────────────────┐" + C.reset);
-    matches.forEach((p, idx) => {
+    if (matches.length === 1) {
+      return matches[0];
+    }
+
+    // Multiple recommendations found
+    console.log(C.gold + `\n┌── RECOMMENDATIONS ────────────────────────────────────────────────┐` + C.reset);
+    matches.forEach((p) => {
+      const code = sortedPersonas.indexOf(p) + 1;
       console.log(
-        ` ${C.gold}[${String(idx + 1).padStart(2, "0")}]${C.reset} ` +
-        `${C.bold}${p.name.padEnd(24)}${C.reset} ` +
-        `${C.cyan}${p.role.slice(0, 36).padEnd(36)}${C.reset} `
+        ` ${C.gold}[${String(code).padStart(3, " ")}]${C.reset} ` +
+        `${C.bold}${p.name.padEnd(28)}${C.reset} ` +
+        `${C.cyan}${p.role.slice(0, 32)}${C.reset}`
       );
     });
-    console.log(C.gold + "└──────────────────────────────────────────────────────────────────┘" + C.reset);
+    console.log(C.gold + "└───────────────────────────────────────────────────────────────────┘" + C.reset);
 
-    const selection = await promptQuestion(C.bold + "\nSelect number (or Enter to search again): " + C.reset);
-    if (!selection.trim()) continue;
-
-    const num = parseInt(selection.trim(), 10);
-    if (!isNaN(num) && num > 0 && num <= matches.length) {
-      return matches[num - 1];
+    const select = await promptQuestion(C.bold + "\nEnter Code from recommendations (or press Enter to search again): " + C.reset);
+    const finalCode = parseInt(select.trim(), 10);
+    if (!isNaN(finalCode) && finalCode > 0 && finalCode <= sortedPersonas.length) {
+      return sortedPersonas[finalCode - 1];
     }
   }
 }
 
 // Chat Mode
 async function runChat() {
-  const p = await selectPersona("CONVERSE WITH A THINKER");
+  const p = await queryPersonaInteractive("CONVERSE WITH A THINKER");
   if (!p) return;
 
   const key = await ensureApiKey();
@@ -233,7 +272,7 @@ async function runCouncil() {
   
   const council: Persona[] = [];
   for (let i = 1; i <= 3; i++) {
-    const p = await selectPersona(`SELECT THINKER [${i}/3]`);
+    const p = await queryPersonaInteractive(`SELECT THINKER [${i}/3]`);
     if (!p) return;
     council.push(p);
   }
@@ -290,9 +329,9 @@ async function runDebate() {
   console.clear();
   drawBox("DEBATE ARENA", "Set two minds against each other in intellectual combat");
 
-  const p1 = await selectPersona("SELECT DEBATER 1");
+  const p1 = await queryPersonaInteractive("SELECT DEBATER 1");
   if (!p1) return;
-  const p2 = await selectPersona("SELECT DEBATER 2");
+  const p2 = await queryPersonaInteractive("SELECT DEBATER 2");
   if (!p2) return;
 
   const key = await ensureApiKey();
@@ -349,31 +388,85 @@ async function runDebate() {
   await promptQuestion("\nPress Enter to return to main menu.");
 }
 
+// Show the complete alphabetical directory of minds
+async function showCodexIndex() {
+  let page = 0;
+  const pageSize = 15;
+  const totalPages = Math.ceil(sortedPersonas.length / pageSize);
+
+  while (true) {
+    console.clear();
+    drawBox("MINDS CODEX INDEX", `Page ${page + 1} of ${totalPages} · sorted alphabetically`);
+    console.log(C.gold + "\n┌─── INDEX ────────────────────────────────────────────────────────┐" + C.reset);
+    
+    const start = page * pageSize;
+    const end = Math.min(start + pageSize, sortedPersonas.length);
+    for (let i = start; i < end; i++) {
+      const p = sortedPersonas[i];
+      const code = i + 1;
+      console.log(
+        ` ${C.gold}[${String(code).padStart(3, " ")}]${C.reset} ` +
+        `${C.bold}${p.name.padEnd(28)}${C.reset} ` +
+        `${C.cyan}${p.role.slice(0, 32).padEnd(32)}${C.reset} `
+      );
+    }
+    console.log(C.gold + "└──────────────────────────────────────────────────────────────────┘" + C.reset);
+
+    const action = await promptQuestion(
+      C.bold + "\nCommands: [n] Next, [p] Prev, [code] Select Mind, or [Enter] Back to Menu: " + C.reset
+    );
+    
+    const cmd = action.trim().toLowerCase();
+    if (!cmd) break;
+    
+    if (cmd === "n" && page < totalPages - 1) {
+      page++;
+    } else if (cmd === "p" && page > 0) {
+      page--;
+    } else {
+      const codeVal = parseInt(cmd, 10);
+      if (!isNaN(codeVal) && codeVal > 0 && codeVal <= sortedPersonas.length) {
+        const p = sortedPersonas[codeVal - 1];
+        console.clear();
+        drawBox(p.name, p.role);
+        console.log(`\n${C.bold}CODE:${C.reset} [${codeVal}]`);
+        console.log(`${C.bold}ERA:${C.reset} ${p.eraStart ?? "?"} to ${p.eraEnd ?? "?"}`);
+        console.log(`${C.bold}POLITY/REGION:${C.reset} ${p.country ?? "?"} (${p.region ?? "?"})`);
+        console.log(`${C.bold}TEMPERAMENT:${C.reset} ${p.tags.join("  ·  ")}`);
+        console.log(`${C.bold}SIGNATURE PROFILE:${C.reset}\n${p.signature}`);
+        await promptQuestion("\nPress Enter to return.");
+      }
+    }
+  }
+}
+
 // Main CLI Loop
 async function main() {
+  // Take users Gemini API Key on start for smooth chatting further
+  await ensureApiKey();
+
   while (true) {
     console.clear();
     console.log(C.gold + `┌────────────────────────────────────────────────────────────────────────┐
-│                                                                        │
-│  ██████╗ ███████╗██████╗ ███████╗ ██████╗ ███╗   ██╗ █████╗ ███████╗    │
-│  ██╔══██╗██╔════╝██╔══██╗██╔════╝██╔═══██╗████╗  ██║██╔══██╗██╔════╝    │
-│  ██████╔╝█████╗  ██████╔╝███████╗██║   ██║██╔██╗ ██║███████║█████╗      │
-│  ██╔═══╝ ██╔══╝  ██╔══██╗╚════██║██║   ██║██║╚██╗██║██╔══██║██╔══╝      │
-│  ██║     ███████╗██║  ██║███████║╚██████╔╝██║ ╚████║██║  ██║███████╗    │
-│  ╚═╝     ╚══════╝╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝    │
-│                                                                        │
+│                                                                        │` + C.reset);
+    drawLogoLine(" ____  _____ ____  ____   ___  _   _    _     _____");
+    drawLogoLine("|  _ \\| ____|  _ \\/ ___| / _ \\| \\ | |  / \\   | ____|");
+    drawLogoLine("| |_) |  _| | |_) \\___ \\| | | |  \\| | / _ \\  |  _|  ");
+    drawLogoLine("|  __/| |___|  _ < ___) | |_| | |\\  |/ ___ \\ | |___ ");
+    drawLogoLine("|_|   |_____|_| \\_\\____/ \\___/|_| \\_/_/   \\_\\|_____|");
+    console.log(C.gold + `│                                                                        │
 │               THE LIVING ARCHIVE OF 208 RECONSTRUCTED MINDS            │
 │       Licensed under the MIT Open Source License · Edition 2026.1      │
 │                                                                        │
 ├────────────────────────────────────────────────────────────────────────┤
 │                                                                        │` + C.reset);
 
-    drawMenuRow("[1]  🔎  Search Codex (208 Minds)");
-    drawMenuRow("[2]  💬  Converse with a Thinker");
-    drawMenuRow("[3]  🏛️   Summon the Council (3 minds, 1 query)");
-    drawMenuRow("[4]  ⚔️   Orchestrate a Debate (2 minds, 1 topic)");
-    drawMenuRow("[5]  🔑  Configure Gemini API Key");
-    drawMenuRow("[6]  ❌  Exit Archive");
+    drawMenuRow("[1]  Search Codex (208 Minds)");
+    drawMenuRow("[2]  Converse with a Thinker");
+    drawMenuRow("[3]  Summon the Council (3 minds, 1 query)");
+    drawMenuRow("[4]  Orchestrate a Debate (2 minds, 1 topic)");
+    drawMenuRow("[5]  Configure Gemini API Key");
+    drawMenuRow("[6]  Exit Archive");
 
     console.log(C.gold + `│                                                                        │
 └────────────────────────────────────────────────────────────────────────┘` + C.reset);
@@ -381,16 +474,7 @@ async function main() {
     const choice = await promptQuestion(C.bold + "\nSelect an option [1-6]: " + C.reset);
     switch (choice.trim()) {
       case "1":
-        const p = await selectPersona("BROWSE MINDS CODEX");
-        if (p) {
-          console.clear();
-          drawBox(p.name, p.role);
-          console.log(`\n${C.bold}ERA:${C.reset} ${p.eraStart ?? "?"} to ${p.eraEnd ?? "?"}`);
-          console.log(`${C.bold}POLITY/REGION:${C.reset} ${p.country ?? "?"} (${p.region ?? "?"})`);
-          console.log(`${C.bold}TEMPERAMENT:${C.reset} ${p.tags.join("  ·  ")}`);
-          console.log(`${C.bold}SIGNATURE PROFILE:${C.reset}\n${p.signature}`);
-          await promptQuestion("\nPress Enter to return.");
-        }
+        await showCodexIndex();
         break;
       case "2":
         await runChat();
@@ -402,7 +486,7 @@ async function main() {
         await runDebate();
         break;
       case "5":
-        await ensureApiKey();
+        await ensureApiKey(true);
         break;
       case "6":
         console.clear();
