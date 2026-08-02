@@ -20,7 +20,6 @@ const C = {
   cyan: "\x1b[36m",
   white: "\x1b[37m",
   gray: "\x1b[90m",
-  bgAccent: "\x1b[48;5;236m",
 };
 
 const rl = readline.createInterface({
@@ -34,6 +33,19 @@ const promptQuestion = (query: string): Promise<string> => {
 
 // Sort personas alphabetically and assign a code (1 to 208)
 const sortedPersonas = [...personas].sort((a, b) => a.name.localeCompare(b.name));
+
+// Auto-compress flag
+let autoCompressEnabled = true;
+
+// Helper to get current terminal width
+function getTerminalWidth(): number {
+  return process.stdout.columns || 80;
+}
+
+// Draw dynamic horizontal rule spanning exact terminal width
+function drawHorizontalRule(color = C.gold) {
+  console.log(color + "─".repeat(getTerminalWidth()) + C.reset);
+}
 
 // Simple Typewriter Effect
 async function typePrint(text: string, ms = 4) {
@@ -79,50 +91,35 @@ async function summonDebateAnimation(name1: string, name2: string) {
   await new Promise((r) => setTimeout(r, 400));
 }
 
+// Centering text helper
+function printCentered(text: string, color = C.reset, isBold = false) {
+  const width = getTerminalWidth();
+  const rawText = text.replace(/\x1b\[[0-9;]*m/g, ""); // strip colors for length math
+  const pad = Math.max(0, Math.floor((width - rawText.length) / 2));
+  console.log(" ".repeat(pad) + (isBold ? C.bold : "") + color + text + C.reset);
+}
+
 // Draw a beautiful boxed title with dynamic width to prevent overflows/crashes
 function drawBox(title: string, subtitle?: string) {
-  const minWidth = 73;
-  const titleLen = title.length;
-  const subLen = subtitle ? subtitle.length : 0;
-  const width = Math.max(minWidth, titleLen + 8, subLen + 8); // Add margin padding dynamically
-
+  const width = getTerminalWidth();
   console.log(C.gold + "┌" + "─".repeat(width - 2) + "┐");
-  const padL = Math.floor((width - 2 - titleLen) / 2);
-  const padR = width - 2 - titleLen - padL;
+  const padL = Math.floor((width - 2 - title.length) / 2);
+  const padR = width - 2 - title.length - padL;
   console.log(C.gold + "│" + C.reset + " ".repeat(padL) + C.bold + title + C.reset + C.gold + " ".repeat(padR) + "│");
   
   if (subtitle) {
-    const sPadL = Math.floor((width - 2 - subLen) / 2);
-    const sPadR = width - 2 - subLen - sPadL;
+    const sPadL = Math.floor((width - 2 - subtitle.length) / 2);
+    const sPadR = width - 2 - subtitle.length - sPadL;
     console.log(C.gold + "│" + C.reset + " ".repeat(sPadL) + C.dim + subtitle + C.reset + C.gold + " ".repeat(sPadR) + "│");
   }
   console.log(C.gold + "└" + "─".repeat(width - 2) + "┘" + C.reset);
-}
-
-// Dynamically draws a menu row to ensure right-border alignment is 100% correct
-function drawMenuRow(text: string) {
-  const innerWidth = 73;
-  const padding = innerWidth - 6 - text.length; // 3 spaces left margin, variable right margin
-  console.log(
-    C.gold + "│" + C.reset + "   " + text + " ".repeat(padding) + C.gold + "  │" + C.reset
-  );
-}
-
-// Dynamically centers ASCII logo lines
-function drawLogoLine(line: string) {
-  const innerWidth = 73;
-  const padL = Math.floor((innerWidth - 2 - line.length) / 2);
-  const padR = innerWidth - 2 - line.length - padL;
-  console.log(
-    C.gold + "│" + C.reset + " ".repeat(padL) + C.bold + line + C.reset + C.gold + " ".repeat(padR) + "│" + C.reset
-  );
 }
 
 // Setup API Key
 async function ensureApiKey(forcePrompt = false): Promise<string> {
   let key = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
   if (!key) {
-    // Attempt to read from .env file directly
+    // Attempt to read from .env file
     try {
       const envPath = path.resolve(process.cwd(), ".env");
       if (fs.existsSync(envPath)) {
@@ -143,7 +140,6 @@ async function ensureApiKey(forcePrompt = false): Promise<string> {
     key = input.trim();
     if (key) {
       process.env.GEMINI_API_KEY = key;
-      // Save to local .env
       try {
         const envPath = path.resolve(process.cwd(), ".env");
         const newEntry = `\nVITE_GEMINI_API_KEY=${key}\n`;
@@ -182,7 +178,7 @@ async function queryPersonaInteractive(title: string): Promise<Persona | null> {
       return sortedPersonas[codeNum - 1];
     }
 
-    // Recommendation/fuzzy matching engine
+    // Fuzzy matching engine
     const searchTerms = query.toLowerCase();
     const matches = sortedPersonas.filter((p) => {
       return (
@@ -226,23 +222,50 @@ async function queryPersonaInteractive(title: string): Promise<Persona | null> {
 
 // Chat Header Drawer dynamically sizing borders to prevent wrap errors
 function drawChatHeader(p: Persona) {
-  const minWidth = 73;
-  const nameLen = p.name.length;
-  const roleLen = p.role.length;
-  const sigLen = p.signature.length;
-  const width = Math.max(minWidth, nameLen + 8, roleLen + 8, Math.min(sigLen + 8, 85));
-
+  const width = getTerminalWidth();
   console.log(C.gold + "┌" + "─".repeat(width - 2) + "┐");
-  const nPad = width - 4 - nameLen;
-  console.log(C.gold + "│ " + C.reset + C.bold + p.name.toUpperCase() + " ".repeat(nPad) + C.gold + " │" + C.reset);
-  const rPad = width - 4 - roleLen;
-  console.log(C.gold + "│ " + C.reset + C.dim + p.role + " ".repeat(rPad) + C.gold + " │" + C.reset);
+  
+  // Dynamic padding helper
+  const drawRow = (text: string, colorCode: string) => {
+    const pad = width - 4 - text.length;
+    console.log(C.gold + "│ " + C.reset + colorCode + text + " ".repeat(Math.max(0, pad)) + C.gold + " │" + C.reset);
+  };
+
+  drawRow(p.name.toUpperCase(), C.bold);
+  drawRow(p.role, C.dim);
   
   const maxSig = width - 4;
   const sigText = p.signature.length > maxSig ? p.signature.slice(0, maxSig - 3) + "..." : p.signature;
-  const sPad = width - 4 - sigText.length;
-  console.log(C.gold + "│ " + C.reset + C.italic + sigText + " ".repeat(sPad) + C.gold + " │" + C.reset);
+  drawRow(sigText, C.italic);
+  
   console.log(C.gold + "└" + "─".repeat(width - 2) + "┘" + C.reset);
+}
+
+// Context compressor helper using Gemini
+async function compressHistory(history: GwMessage[], key: string): Promise<GwMessage[]> {
+  if (history.length <= 3) return history;
+  const toCompress = history.filter((m) => m.role !== "system");
+  const prompt: GwMessage[] = [
+    {
+      role: "system",
+      content:
+        "You are an archival context compressor. Summarize the conversation history between the user and a historical mind. Retain the core ideas, critical agreements/disagreements, and the topic of discussion, so that they can continue chatting smoothly. Keep it under 150 words.",
+    },
+    { role: "user", content: JSON.stringify(toCompress) },
+  ];
+
+  try {
+    const summary = await gatewayChat(prompt, { userKey: key });
+    console.log(C.green + "\n[Context compressed successfully]" + C.reset);
+    return [
+      history[0], // keep the system prompt
+      { role: "user", content: `Here is a summary of our conversation so far: ${summary}` },
+      { role: "assistant", content: "Understood. Let us proceed with our dialogue." },
+    ];
+  } catch (e: any) {
+    console.log(C.red + "\n[Failed to compress context: " + e.message + "]" + C.reset);
+    return history;
+  }
 }
 
 // Chat Mode
@@ -256,19 +279,51 @@ async function runChat() {
   await summonAnimation(p.name);
 
   const systemInstruction = (prompts as Record<string, string>)[p.slug] || "";
-  const history: GwMessage[] = [{ role: "system", content: systemInstruction }];
+  let history: GwMessage[] = [{ role: "system", content: systemInstruction }];
 
   console.clear();
   drawChatHeader(p);
-  console.log(C.gray + "Type /back to exit conversation.\n" + C.reset);
+  console.log(C.gray + "Type your message to begin conversation." + C.reset);
+  console.log(C.gray + "Commands: /back (exit), /context (size info), /compress (reduce history), /new (clear history)\n" + C.reset);
 
   while (true) {
     const input = await promptQuestion(C.green + C.bold + "You > " + C.reset);
-    if (input.trim() === "/back") break;
-    if (!input.trim()) continue;
+    const query = input.trim();
+    if (query === "/back") break;
+    if (!query) continue;
 
-    history.push({ role: "user", content: input });
-    process.stdout.write(C.bold + C.gold + `\n${p.name} > ` + C.reset + C.dim + "(thinking...)" + C.reset + "\r");
+    // Chat context settings commands
+    if (query === "/context") {
+      const turns = history.filter((h) => h.role !== "system").length;
+      console.log(C.cyan + `\n--- Context Window Status ---` + C.reset);
+      console.log(`• Total message turns: ${turns}`);
+      console.log(`• System instructions active: ${systemInstruction ? "Yes" : "No"}`);
+      console.log(`• Auto-compression: ${autoCompressEnabled ? "ON" : "OFF"}`);
+      console.log(C.cyan + `─────────────────────────────\n` + C.reset);
+      continue;
+    }
+
+    if (query === "/new") {
+      history = [{ role: "system", content: systemInstruction }];
+      console.log(C.green + "\n[New chat started. Context cleared.]\n" + C.reset);
+      continue;
+    }
+
+    if (query === "/compress") {
+      process.stdout.write(C.dim + "Compressing historical context..." + C.reset + "\r");
+      history = await compressHistory(history, key);
+      console.log();
+      continue;
+    }
+
+    // Auto-compress trigger (compress history if length grows too large)
+    if (autoCompressEnabled && history.length > 10) {
+      console.log(C.dim + "[Auto-compressing context to fit token limits...]" + C.reset);
+      history = await compressHistory(history, key);
+    }
+
+    history.push({ role: "user", content: query });
+    process.stdout.write(C.bold + C.gold + `${p.name} > ` + C.reset + C.dim + "(thinking...)" + C.reset + "\r");
 
     try {
       const response = await gatewayChat(history, { userKey: key });
@@ -282,6 +337,8 @@ async function runChat() {
       readline.clearLine(process.stdout, 0);
       readline.cursorTo(process.stdout, 0);
       console.log(C.red + "Error calling Gemini: " + err.message + C.reset + "\n");
+      // Remove failed message from history to prevent context errors
+      history.pop();
     }
   }
 }
@@ -468,29 +525,32 @@ async function main() {
 
   while (true) {
     console.clear();
-    console.log(C.gold + `┌────────────────────────────────────────────────────────────────────────┐
-│                                                                        │` + C.reset);
-    drawLogoLine(" ____  _____ ____  ____   ___  _   _    _     _____");
-    drawLogoLine("|  _ \\| ____|  _ \\/ ___| / _ \\| \\ | |  / \\   | ____|");
-    drawLogoLine("| |_) |  _| | |_) \\___ \\| | | |  \\| | / _ \\  |  _|  ");
-    drawLogoLine("|  __/| |___|  _ < ___) | |_| | |\\  |/ ___ \\ | |___ ");
-    drawLogoLine("|_|   |_____|_| \_\\____/ \\___/|_| \\_/_/   \\_\\|_____|");
-    console.log(C.gold + `│                                                                        │
-│               THE LIVING ARCHIVE OF 208 RECONSTRUCTED MINDS            │
-│       Licensed under the MIT Open Source License · Edition 2026.1      │
-│                                                                        │
-├────────────────────────────────────────────────────────────────────────┤
-│                                                                        │` + C.reset);
+    console.log();
+    // Borderless center header logo matching user preferences
+    printCentered("██████╗ ███████╗██████╗ ███████╗ ██████╗ ███╗   ██╗ █████╗ ███████╗", C.gold, true);
+    printCentered("██╔══██╗██╔════╝██╔══██╗██╔════╝██╔═══██╗████╗  ██║██╔══██╗██╔════╝", C.gold, true);
+    printCentered("██████╔╝█████╗  ██████╔╝███████╗██║   ██║██╔██╗ ██║███████║█████╗  ", C.gold, true);
+    printCentered("██╔═══╝ ██╔══╝  ██╔══██╗╚════██║██║   ██║██║╚██╗██║██╔══██║██╔══╝  ", C.gold, true);
+    printCentered("██║     ███████╗██║  ██║███████║╚██████╔╝██║ ╚████║██║  ██║███████╗", C.gold, true);
+    printCentered("╚═╝     ╚══════╝╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝", C.gold, true);
+    console.log();
+    printCentered("THE LIVING ARCHIVE OF 208 RECONSTRUCTED MINDS", C.gold, false);
+    printCentered("Licensed under the MIT Open Source License · Edition 2026.1", C.gold, false);
+    console.log();
+    
+    // Horizontal rule spanning entire terminal screen width
+    drawHorizontalRule(C.gold);
+    
+    console.log();
+    console.log("   [1]  Search Codex (208 Minds)");
+    console.log("   [2]  Converse with a Thinker");
+    console.log("   [3]  Summon the Council (3 minds, 1 query)");
+    console.log("   [4]  Orchestrate a Debate (2 minds, 1 topic)");
+    console.log("   [5]  Configure Gemini API Key");
+    console.log("   [6]  Exit Archive");
+    console.log();
 
-    drawMenuRow("[1]  Search Codex (208 Minds)");
-    drawMenuRow("[2]  Converse with a Thinker");
-    drawMenuRow("[3]  Summon the Council (3 minds, 1 query)");
-    drawMenuRow("[4]  Orchestrate a Debate (2 minds, 1 topic)");
-    drawMenuRow("[5]  Configure Gemini API Key");
-    drawMenuRow("[6]  Exit Archive");
-
-    console.log(C.gold + `│                                                                        │
-└────────────────────────────────────────────────────────────────────────┘` + C.reset);
+    drawHorizontalRule(C.gold);
 
     const choice = await promptQuestion(C.bold + "\nSelect an option [1-6]: " + C.reset);
     switch (choice.trim()) {
