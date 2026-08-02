@@ -122,3 +122,21 @@ When interacting with any mind, input these slash commands in the chat prompt fo
 *   `src/data/` — Static data profiles, signatures, and initial profiles for the 208 minds.
 *   `src/integrations/` — Supabase client setup and related query providers.
 *   `src/styles.css` — Custom global typography, glassmorphism filters, and CSS grain effects.
+
+## ✦ UI Design
+
+<img width="1920" height="578" alt="{B4640D8E-ED26-46A6-BF4B-7C235CCBDD9C}" src="https://github.com/user-attachments/assets/f20861b8-6ea9-4f9b-9f40-8660c8992ec4" />
+
+<img width="1920" height="586" alt="{DEB670A8-3297-4407-8437-E0D430554DC4}" src="https://github.com/user-attachments/assets/18234384-c5f4-4956-b55c-62e6392df8c7" />
+
+<img width="1920" height="1080" alt="{B70F037D-4B72-4AB7-BB84-92890363E473}" src="https://github.com/user-attachments/assets/2715ab32-cc68-4000-b2a7-c1e97e27a2ab" />
+
+<img width="1920" height="1080" alt="{C047FF10-02C7-4F25-8E88-E78BC250AF2B}" src="https://github.com/user-attachments/assets/65bc3a49-e6ff-4b4c-9192-0091fdfb05dc" />
+
+<img width="1920" height="923" alt="{FF5BEC19-C6C9-422F-9A9E-090EFDBD81DD}" src="https://github.com/user-attachments/assets/a458e4b8-c894-49ba-a88b-acabad62a3e4" />
+
+<img width="678" height="121" alt="{B3AE1F7E-129A-48EB-9B66-6EEE73B0E63D}" src="https://github.com/user-attachments/assets/9028fe76-b21c-430d-b3d4-aeaeae85125a" />
+
+
+
+
