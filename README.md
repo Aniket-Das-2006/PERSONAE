@@ -83,6 +83,33 @@ Open `http://localhost:3000` (or the port specified in console) to consult the a
 
 ---
 
+## ✦ Terminal User Interface (CLI TUI)
+
+PERSONAE includes a fully-featured, premium Terminal User Interface (TUI) allowing you to interact with the Living Archive directly from your command line.
+
+### Launching the CLI
+To open and run the TUI on your terminal, execute:
+```bash
+npm run cli
+# or
+bun run cli
+```
+
+### Features & Capabilities
+1. **Search Codex:** Browse and search all 208 minds alphabetically using pagination. Each thinker has a unique index code (1–208) mapped to them.
+2. **Converse with a Thinker:** Initiate an interactive chat with any thinker. You can select them directly using their numeric index code (e.g. `81` for Netaji) or search by name (e.g. `socrates`).
+3. **Summon the Council:** Choose 3 thinkers to deliberate and discuss a specific prompt/query together.
+4. **Orchestrate a Debate:** Pit 2 thinkers against each other in a turn-based intellectual battle on a topic of your choice.
+
+### In-Chat Context Commands
+While chatting, use these custom slash-commands directly in the prompt for advanced context control:
+- `/context` — View the active conversation details (total turns, instruction status, auto-compression toggles).
+- `/new` — Instantly wipe history and start a fresh session with the thinker.
+- `/compress` — Manually trigger a context summarization model to collapse old turns and free up context space.
+- `/api` — Change your Gemini API key mid-conversation without exiting the chat session.
+
+---
+
 ## ✦ Archive Structure
 
 *   `src/components/` — Modals, particle portraits, key configurations, and command palette.
