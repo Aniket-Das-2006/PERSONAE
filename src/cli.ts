@@ -41,9 +41,44 @@ async function typePrint(text: string, ms = 4) {
   console.log();
 }
 
-// Draw a beautiful boxed title
+// Summoning / Reconstruction Animations
+async function summonAnimation(name: string) {
+  const frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
+  console.log();
+  for (let i = 0; i < 20; i++) {
+    const frame = frames[i % frames.length];
+    process.stdout.write(`\r${C.gold}${frame} Reconstructing mind: ${C.bold}${name}${C.reset} ${C.dim}[Quantum state ${i * 5}%]${C.reset}`);
+    await new Promise((r) => setTimeout(r, 70));
+  }
+  process.stdout.write(`\r${C.green}✓ Mind successfully reconstructed: ${C.bold}${name}${C.reset}                       \n\n`);
+  await new Promise((r) => setTimeout(r, 500));
+}
+
+async function summonCouncilAnimation() {
+  console.log();
+  for (let i = 0; i < 25; i++) {
+    const pct = i * 4;
+    process.stdout.write(`\r${C.gold}⚡ Aligning temperament grid for Council... ${pct}%${C.reset}`);
+    await new Promise((r) => setTimeout(r, 50));
+  }
+  process.stdout.write(`\r${C.green}✓ Council grid aligned. Reconstructed minds online.                  \n\n`);
+  await new Promise((r) => setTimeout(r, 500));
+}
+
+async function summonDebateAnimation(name1: string, name2: string) {
+  console.log();
+  for (let i = 0; i < 25; i++) {
+    const pct = i * 4;
+    process.stdout.write(`\r${C.red}⚔ Establishing debate protocols: ${name1} vs ${name2}... ${pct}%${C.reset}`);
+    await new Promise((r) => setTimeout(r, 50));
+  }
+  process.stdout.write(`\r${C.green}✓ Protocols established. Debate arena active.                          \n\n`);
+  await new Promise((r) => setTimeout(r, 500));
+}
+
+// Draw a beautiful boxed title with dynamic width
 function drawBox(title: string, subtitle?: string) {
-  const width = 64;
+  const width = 73;
   console.log(C.gold + "┌" + "─".repeat(width - 2) + "┐");
   const padL = Math.floor((width - 2 - title.length) / 2);
   const padR = width - 2 - title.length - padL;
@@ -55,6 +90,15 @@ function drawBox(title: string, subtitle?: string) {
     console.log("│" + " ".repeat(sPadL) + C.dim + subtitle + C.reset + C.gold + " ".repeat(sPadR) + "│");
   }
   console.log("└" + "─".repeat(width - 2) + "┘" + C.reset);
+}
+
+// Dynamically draws a menu row to ensure right-border alignment is 100% correct
+function drawMenuRow(text: string) {
+  const innerWidth = 73;
+  const padding = innerWidth - 6 - text.length; // 3 spaces left margin, variable right margin
+  console.log(
+    C.gold + "│" + C.reset + "   " + text + " ".repeat(padding) + C.gold + "  │" + C.reset
+  );
 }
 
 // Setup API Key
@@ -82,7 +126,7 @@ async function ensureApiKey(): Promise<string> {
     key = input.trim();
     if (key) {
       process.env.GEMINI_API_KEY = key;
-      // Optional: Save to local session or env
+      // Save to local session or env
       try {
         const envPath = path.resolve(process.cwd(), ".env");
         const newEntry = `\nVITE_GEMINI_API_KEY=${key}\n`;
@@ -117,15 +161,15 @@ async function selectPersona(title: string): Promise<Persona | null> {
       continue;
     }
 
-    console.log(C.gold + "\n┌─── INDEX ──────────────────────────────────────────────────┐" + C.reset);
+    console.log(C.gold + "\n┌─── INDEX ────────────────────────────────────────────────────────┐" + C.reset);
     matches.forEach((p, idx) => {
       console.log(
         ` ${C.gold}[${String(idx + 1).padStart(2, "0")}]${C.reset} ` +
         `${C.bold}${p.name.padEnd(24)}${C.reset} ` +
-        `${C.cyan}${p.role.slice(0, 32).padEnd(32)}${C.reset} `
+        `${C.cyan}${p.role.slice(0, 36).padEnd(36)}${C.reset} `
       );
     });
-    console.log(C.gold + "└────────────────────────────────────────────────────────────┘" + C.reset);
+    console.log(C.gold + "└──────────────────────────────────────────────────────────────────┘" + C.reset);
 
     const selection = await promptQuestion(C.bold + "\nSelect number (or Enter to search again): " + C.reset);
     if (!selection.trim()) continue;
@@ -145,15 +189,17 @@ async function runChat() {
   const key = await ensureApiKey();
   if (!key) return;
 
+  await summonAnimation(p.name);
+
   const systemInstruction = (prompts as Record<string, string>)[p.slug] || "";
   const history: GwMessage[] = [{ role: "system", content: systemInstruction }];
 
   console.clear();
-  console.log(C.gold + "┌" + "─".repeat(62) + "┐");
-  console.log(`│ ${C.bold}${p.name.toUpperCase().padEnd(60)}${C.reset}${C.gold} │`);
-  console.log(`│ ${C.dim}${p.role.padEnd(60)}${C.reset}${C.gold} │`);
-  console.log(`│ ${C.italic}${p.signature.slice(0, 58).padEnd(60)}${C.reset}${C.gold} │`);
-  console.log("└" + "─".repeat(62) + "┘" + C.reset);
+  console.log(C.gold + "┌" + "─".repeat(69) + "┐");
+  console.log(`│ ${C.bold}${p.name.toUpperCase().padEnd(67)}${C.reset}${C.gold} │`);
+  console.log(`│ ${C.dim}${p.role.padEnd(67)}${C.reset}${C.gold} │`);
+  console.log(`│ ${C.italic}${p.signature.slice(0, 65).padEnd(67)}${C.reset}${C.gold} │`);
+  console.log("└" + "─".repeat(69) + "┘" + C.reset);
   console.log(C.gray + "Type /back to exit conversation.\n" + C.reset);
 
   while (true) {
@@ -166,7 +212,6 @@ async function runChat() {
 
     try {
       const response = await gatewayChat(history, { userKey: key });
-      // Clear the (thinking...) message line
       readline.clearLine(process.stdout, 0);
       readline.cursorTo(process.stdout, 0);
       process.stdout.write(C.bold + C.gold + `${p.name} > ` + C.reset);
@@ -195,6 +240,8 @@ async function runCouncil() {
 
   const key = await ensureApiKey();
   if (!key) return;
+
+  await summonCouncilAnimation();
 
   console.clear();
   drawBox("THE CONVENED COUNCIL", council.map((p) => p.name).join("  ·  "));
@@ -251,6 +298,8 @@ async function runDebate() {
   const key = await ensureApiKey();
   if (!key) return;
 
+  await summonDebateAnimation(p1.name, p2.name);
+
   console.clear();
   drawBox("MATCH-UP ESTABLISHED", `${p1.name}   VS   ${p2.name}`);
 
@@ -261,7 +310,7 @@ async function runDebate() {
 
   const contextHistory: GwMessage[] = [];
 
-  // 3 Rounds of debate
+  // 2 Rounds of debate
   for (let round = 1; round <= 2; round++) {
     // Debater 1 Turn
     const sys1 = 
@@ -304,26 +353,30 @@ async function runDebate() {
 async function main() {
   while (true) {
     console.clear();
-    console.log(C.gold + `
-┌──────────────────────────────────────────────────────────────┐
-│                                                              │
-│   ███╗   ███╗██╗████████╗   P E R S O N A E                  │
-│   ████╗ ████║██║╚══██╔══╝   ──────────────────────────────   │
-│   ██╔████╔██║██║   ██║      THE LIVING ARCHIVE               │
-│   ██║╚██╔╝██║██║   ██║      Terminal User Interface          │
-│   ██║ ╚═╝ ██║██║   ██║      Edition: 2026.1                  │
-│   ╚═╝     ╚═╝╚═╝   ╚═╝                                       │
-│                                                              │
-├──────────────────────────────────────────────────────────────┤
-│                                                              │
-│   [1] 🔎  Search Codex (208 Minds)                           │
-│   [2] 💬  Converse with a Thinker                            │
-│   [3] 🏛️   Summon the Council (3 minds, 1 query)             │
-│   [4] ⚔️   Orchestrate a Debate (2 minds, 1 topic)            │
-│   [5] 🔑  Configure Gemini API Key                           │
-│   [6] ❌  Exit Archive                                       │
-│                                                              │
-└──────────────────────────────────────────────────────────────┘` + C.reset);
+    console.log(C.gold + `┌────────────────────────────────────────────────────────────────────────┐
+│                                                                        │
+│  ██████╗ ███████╗██████╗ ███████╗ ██████╗ ███╗   ██╗ █████╗ ███████╗    │
+│  ██╔══██╗██╔════╝██╔══██╗██╔════╝██╔═══██╗████╗  ██║██╔══██╗██╔════╝    │
+│  ██████╔╝█████╗  ██████╔╝███████╗██║   ██║██╔██╗ ██║███████║█████╗      │
+│  ██╔═══╝ ██╔══╝  ██╔══██╗╚════██║██║   ██║██║╚██╗██║██╔══██║██╔══╝      │
+│  ██║     ███████╗██║  ██║███████║╚██████╔╝██║ ╚████║██║  ██║███████╗    │
+│  ╚═╝     ╚══════╝╚═╝  ╚═╝╚══════╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═╝╚══════╝    │
+│                                                                        │
+│               THE LIVING ARCHIVE OF 208 RECONSTRUCTED MINDS            │
+│       Licensed under the MIT Open Source License · Edition 2026.1      │
+│                                                                        │
+├────────────────────────────────────────────────────────────────────────┤
+│                                                                        │` + C.reset);
+
+    drawMenuRow("[1]  🔎  Search Codex (208 Minds)");
+    drawMenuRow("[2]  💬  Converse with a Thinker");
+    drawMenuRow("[3]  🏛️   Summon the Council (3 minds, 1 query)");
+    drawMenuRow("[4]  ⚔️   Orchestrate a Debate (2 minds, 1 topic)");
+    drawMenuRow("[5]  🔑  Configure Gemini API Key");
+    drawMenuRow("[6]  ❌  Exit Archive");
+
+    console.log(C.gold + `│                                                                        │
+└────────────────────────────────────────────────────────────────────────┘` + C.reset);
 
     const choice = await promptQuestion(C.bold + "\nSelect an option [1-6]: " + C.reset);
     switch (choice.trim()) {
