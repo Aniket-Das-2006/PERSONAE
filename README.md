@@ -148,6 +148,8 @@ When interacting with any mind, input these slash commands in the chat prompt fo
 ## EXIT OUTRO
 <img width="678" height="121" alt="{B3AE1F7E-129A-48EB-9B66-6EEE73B0E63D}" src="https://github.com/user-attachments/assets/9028fe76-b21c-430d-b3d4-aeaeae85125a" />
 
+---
 
-
+## ⭐ Show Your Support
+If you find this project interesting or useful, please consider giving it a **Star**! It helps increase the visibility of the project and encourages further development.
 
